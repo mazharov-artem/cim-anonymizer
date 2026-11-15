@@ -1,14 +1,6 @@
-# Игнорируем гигантские XML файлы
-*.xml
-!data/sample.xml   # Разрешаем только маленький тестовый сэмпл (если он < 50MB)
-
-# Игнорируем результаты работы
-output/
-*.sqlite3
-*.db
-
-# Игнорируем мусор Python
+.venv/
 __pycache__/
 *.pyc
-venv/
+data/input.xml
+output/
 .env
