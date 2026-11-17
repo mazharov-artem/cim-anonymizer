@@ -2,7 +2,6 @@
 import argparse
 import hashlib
 import hmac
-import io
 
 from lxml import etree
 
@@ -34,12 +33,19 @@ def new_name(old_text: str, cls: str) -> str:
     return f"{ADJ[idx]} {cls}-{sfx}"
 
 def read_nsmap(path: str) -> dict:
-    with open(path, "rb") as f:
-        head = f.read(65536)
-    nsmap = {}
-    for _, (prefix, uri) in etree.iterparse(io.BytesIO(head), events=("start-ns",)):
-        if prefix not in nsmap:
-            nsmap[prefix] = uri
+    """Собирает объявления namespace из корневого элемента документа.
+
+    Читаем потоково и останавливаемся сразу после открытия корня: все
+    объявления xmlns находятся в нём, поэтому парсить (или обрезать по
+    байтам) весь файл не нужно.
+    """
+    nsmap: dict = {}
+    for event, payload in etree.iterparse(path, events=("start-ns", "start")):
+        if event == "start-ns":
+            prefix, uri = payload
+            nsmap.setdefault(prefix, uri)
+        else:
+            break
     return nsmap
 
 def anonymize_element(elem) -> None:
